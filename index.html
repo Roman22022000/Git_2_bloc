@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#211d1c">
+<title>TON PLAY · STANDARD v3.0.0</title>
+
+<!--
+  ══════════════════════════════════════════════════════════════
+  TON PLAY · STANDARD v3.0.0
+  Базовый шаблон для будущих проектов.
+  Изменения v3.0.0:
+    • Убрана верхняя шапка (identity) — сайт начинается с hero
+    • Действия над чеком: В игру / Не учитывать / Оценка / Комментарий / Поделиться
+    • Контекстное меню (ПКМ + долгое нажатие): Закладка + Цвет/градиент
+    • Закладка-язычок в чеке
+    • Эффективный баланс (исключённые чеки не учитываются в кошельке)
+  ══════════════════════════════════════════════════════════════
+-->
+
+<style>
+:root{
+  --bg:#211d1c;--panel:#2a2524;--panel2:#302a28;--text:#f5f5f5;
+  --muted:#a9a19e;--telegram:#54a9eb;--orange:#ffad68;
+  --radius:18px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
+         "Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{min-height:100%;background:var(--bg)}
+body{margin:0;min-height:100vh;font-family:var(--font);font-size:14px;
+  line-height:1.4;color:var(--text);background:var(--bg);
+  -webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+button:focus-visible{outline:2px solid var(--telegram);outline-offset:3px}
+button:disabled{opacity:.5;cursor:default}
+p{margin:0}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.25px}
+h1{font-size:25px;line-height:1.2}
+h2{font-size:18px}
+h3{font-size:14px}
+.small{font-size:12px}
+.muted{color:var(--muted)}
+.app{width:100%;max-width:650px;min-height:100dvh;margin:auto}
+main{padding:15px 14px calc(105px + env(safe-area-inset-bottom))}
+.page{display:none}
+.page.active{display:block;animation:pageIn .18s ease}
+@keyframes pageIn{from{opacity:.5;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+
+.background{position:fixed;inset:-25%;z-index:-2;pointer-events:none;
+  background:linear-gradient(125deg,#572c28,#241d20,#713827,#392421,#6e3030);
+  background-size:350% 350%;animation:autumnBackground 24s ease infinite}
+.background:after{content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 15% 20%,#ff8b3624,transparent 40%),
+    radial-gradient(ellipse at 90% 75%,#f13f3725,transparent 45%)}
+@keyframes autumnBackground{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+
+.eyebrow{color:#e5b79a;font-size:10px;font-weight:700;
+  letter-spacing:1.3px;text-transform:uppercase}
+.section-head{display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin:23px 2px 12px}
+.text-button{background:none;color:#ffbc83;font-size:12px;padding:7px}
+.primary,.secondary,.quiet{display:inline-flex;align-items:center;justify-content:center;
+  gap:7px;min-height:41px;padding:10px 15px;border-radius:13px;
+  font-size:13px;font-weight:650;transition:background .18s,transform .18s}
+.primary{background:#f1f0ee;color:#33241f}
+.secondary{background:#ffffff15;color:#fff}
+.quiet{background:#ffffff0a;color:#e8dfda}
+.primary:active,.secondary:active,.quiet:active{transform:scale(.98)}
+.full{width:100%}
+
+/* НОВОЕ v3.0.0: .identity удалён — шапка с иконкой и монетами убрана.
+   Сайт начинается сразу с hero-блока «Играй. Собирай монеты.» */
+
+.hero{position:relative;overflow:hidden;border-radius:21px;
+  padding:22px 18px 20px;margin-bottom:21px;
+  background:linear-gradient(135deg,#c86b39,#a44135 55%,#642e30)}
+.hero:after{content:"◈";position:absolute;right:-12px;bottom:-66px;
+  font-size:205px;color:#ffffff0b;pointer-events:none}
+.hero .eyebrow{color:#ffe0c4}
+.hero h1{font-size:30px;margin-top:8px;max-width:290px}
+.hero p{font-size:12px;color:#ffe4d5;max-width:310px;margin:10px 0 17px}
+
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{min-width:0;padding:13px 10px;border-radius:14px;background:#ffffff0b;
+  transition:background .2s}
+.stat:active{background:#ffffff16}
+.stat-value{font-size:20px;font-weight:800;overflow:hidden;text-overflow:ellipsis}
+.stat-label{font-size:10px;color:#b8aaa2;margin-top:5px}
+
+.game-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.game-card{display:block;width:100%;min-width:0;overflow:hidden;text-align:left;
+  border-radius:17px;background:#ffffff0b;padding:0;transform:translateZ(0);
+  transition:transform .22s ease,background .22s ease}
+.game-card:active{transform:scale(.975)}
+.game-art{height:112px;display:grid;place-items:center;position:relative;
+  overflow:hidden;isolation:isolate;background:var(--game-gradient)}
+.game-art:before{content:"";position:absolute;z-index:-1;
+  width:160%;height:180%;left:-30%;top:-40%;
+  background:linear-gradient(125deg,transparent 28%,#ffffff35 43%,transparent 57%);
+  transform:translateX(-80%) rotate(12deg);transition:transform .6s ease}
+.game-art:after{content:"";position:absolute;z-index:-1;width:115px;height:115px;
+  border-radius:50%;background:radial-gradient(circle,#ffffff25,transparent 70%);
+  right:-25px;top:-30px;transition:transform .35s ease}
+.game-card:hover .game-art:before{transform:translateX(80%) rotate(12deg)}
+.game-card:hover .game-art:after{transform:scale(1.7)}
+.game-card:hover{background:#ffffff12}
+.game-emoji{font-size:47px;line-height:1;filter:drop-shadow(0 4px 8px #0002);
+  transition:transform .25s ease}
+.game-card:hover .game-emoji{transform:translateY(-4px) scale(1.09) rotate(-3deg)}
+.game-info{padding:11px 11px 13px}
+.game-info h3{font-size:13px}
+.game-info p{font-size:11px;color:#b6aaa5;line-height:1.4;margin-top:5px}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;
+  padding:4px 7px;border-radius:7px;background:#ffffff12;color:#ffe0bd;margin-bottom:7px}
+
+.receipt-preview{padding:14px;border-radius:15px;background:#ffffff09;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  position:relative;overflow:hidden}
+.receipt-preview:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--receipt-color,#e5a25c)}
+.receipt-preview-main{min-width:0}
+.receipt-preview-title{font-size:13px;font-weight:700}
+.receipt-preview-sub{font-size:10px;color:#aaa;margin-top:4px}
+.receipt-preview-reward{font-weight:800;color:#ffd08a;white-space:nowrap}
+
+.feature-row{display:flex;align-items:center;gap:12px;padding:15px 2px}
+.feature-icon{width:42px;height:42px;flex-shrink:0;display:grid;place-items:center;
+  background:#ffffff0b;border-radius:13px;font-size:21px}
+.feature-row strong{font-size:13px}
+.feature-row p{font-size:11px;color:#aaa;margin-top:4px}
+
+.nav{position:fixed;z-index:30;left:0;right:0;bottom:0;
+  padding:8px 12px calc(9px + env(safe-area-inset-bottom));
+  pointer-events:none;background:linear-gradient(0deg,#171515ef 65%,#17151500)}
+.nav-inner{pointer-events:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:4px;width:100%;max-width:620px;margin:auto;padding:5px;border-radius:24px;
+  background:#302b29ed;border:1px solid #ffffff12;
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;min-width:0;padding:7px 2px;border-radius:19px;
+  background:transparent;color:#b0a7a2;font-size:10px;
+  transition:background .18s,color .18s}
+.nav-icon{font-size:20px;line-height:22px}
+.nav-item.active{background:#ffffff12;color:#ffbd88}
+.nav-item:active{background:#ffffff17}
+
+.profile-head{display:flex;align-items:center;gap:13px;margin:20px 0}
+.avatar{width:57px;height:57px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(135deg,#ffbf68,#e55542);
+  font-size:26px;font-weight:850;color:#4a251a}
+.profile-name{font-size:18px;font-weight:750}
+.profile-id{font-size:11px;color:#aaa;margin-top:4px}
+.wallet-card{padding:19px;border-radius:20px;margin-bottom:19px;
+  background:linear-gradient(130deg,#a94a32,#59312d)}
+.wallet-label{font-size:10px;color:#f1c7af;letter-spacing:.6px}
+.wallet-amount{font-size:32px;font-weight:850;margin:8px 0}
+.wallet-bottom{display:flex;justify-content:space-between;gap:10px;font-size:10px;
+  color:#f1c7af}
+.menu-list{overflow:hidden;border-radius:16px;background:#ffffff08}
+.menu-row{width:100%;display:flex;align-items:center;gap:11px;padding:14px;
+  background:none;text-align:left;border-bottom:1px solid #ffffff0a}
+.menu-row:last-child{border-bottom:0}
+.menu-icon{width:26px;text-align:center;font-size:20px}
+.menu-description{min-width:0}
+.menu-description strong{font-size:13px}
+.menu-description p{font-size:11px;color:#aaa;margin-top:4px}
+.arrow{margin-left:auto;color:#999;font-size:21px}
+
+/* ══════════════════════════════════════════════
+   ЧЕКИ
+   ══════════════════════════════════════════════ */
+.receipt-list{display:grid;gap:10px}
+.receipt{
+  display:block;width:100%;position:relative;overflow:hidden;
+  text-align:left;padding:14px 13px 14px 16px;
+  border-radius:16px;background:#2b2624;
+  transition:background .18s;
+  /* НОВОЕ: запрет выделения для корректного долгого нажатия */
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+  cursor:pointer;
+}
+.receipt:active{background:#38302d}
+.receipt:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--receipt-color)}
+.receipt:after{content:"";position:absolute;right:-40px;top:-55px;
+  width:125px;height:125px;border-radius:50%;background:var(--receipt-glow);
+  filter:blur(20px);pointer-events:none}
+.receipt-main,.receipt-foot,.receipt-detail{position:relative;z-index:1}
+.receipt-main{display:flex;justify-content:space-between;gap:10px}
+.receipt-title{font-size:13px;font-weight:750}
+.receipt-date{font-size:10px;color:#aaa;margin-top:5px}
+.receipt-reward{font-size:14px;font-weight:850;color:#ffd08a;white-space:nowrap}
+.receipt-foot{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:#aaa;margin-top:12px}
+.receipt-detail{border-top:1px dashed #ffffff25;margin-top:13px;padding-top:9px;
+  /* НОВОЕ: разрешаем выделять текст в раскрытых данных (хеш и т.п.) */
+  user-select:text;-webkit-user-select:text}
+.detail-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;font-size:11px}
+.detail-row span:first-child{color:#aaa}
+.detail-row span:last-child{text-align:right;overflow-wrap:anywhere}
+.hash{font-family:Consolas,monospace;color:#b9ddb4;font-size:10px!important}
+.disclaimer{font-size:10px;line-height:1.5;color:#a89b91;margin-top:10px}
+.empty{padding:32px 14px;border-radius:16px;text-align:center;background:#ffffff07;color:#aaa}
+.empty-icon{font-size:34px;margin-bottom:10px}
+
+/* ══════════════════════════════════════════════
+   НОВОЕ v3.0.0: ЗАКЛАДКА-ЯЗЫЧОК
+   Сверху внутри чека, 14px шириной, 38px высотой.
+   Высота меньше половины свёрнутого чека (~83px).
+   Видна и в свёрнутом виде.
+   ══════════════════════════════════════════════ */
+.receipt-bookmark{
+  position:absolute;top:0;right:20px;
+  width:14px;height:38px;
+  border-radius:0 0 4px 4px;
+  clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);
+  z-index:3;pointer-events:none;
+  box-shadow:0 2px 6px #0005;
+}
+/* Когда закладка есть — сдвигаем награду влево, чтобы она не перекрывалась */
+.receipt.has-bookmark .receipt-main{padding-right:38px}
+
+/* НОВОЕ v3.0.0: панель действий в раскрытом чеке */
+.receipt-actions{
+  display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;
+}
+.receipt-action{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:7px 10px;border-radius:10px;
+  background:#ffffff10;font-size:11px;color:#e8dfda;
+  transition:background .15s,color .15s;
+  white-space:nowrap;
+}
+.receipt-action:active{background:#ffffff1f}
+.receipt-action.active{background:#ffad6830;color:#ffcf9f}
+.receipt-action .icon{font-size:14px;line-height:1}
+
+/* НОВОЕ v3.0.0: строка рейтинга */
+.receipt-rating-row{
+  display:flex;align-items:center;gap:10px;
+  margin-top:12px;padding-top:10px;
+  border-top:1px dashed #ffffff15;
+  flex-wrap:wrap;
+}
+.star-rating{
+  display:inline-flex;gap:3px;
+  /* touch-action:none — критично для drag-выбора звёзд на мобильных */
+  touch-action:none;
+  cursor:pointer;padding:4px 0;user-select:none;
+}
+.rate-star{
+  font-size:22px;line-height:1;color:#6e6560;
+  transition:color .12s,transform .12s;
+}
+.rate-star.active{color:#ffc46d;transform:scale(1.08)}
+
+/* НОВОЕ v3.0.0: отображение сохранённого комментария */
+.receipt-comment{
+  margin-top:10px;padding:9px 11px;border-radius:10px;
+  background:#ffffff0a;font-size:11px;color:#d8cfc9;
+  line-height:1.45;white-space:pre-wrap;word-break:break-word;
+}
+
+/* НОВОЕ v3.0.0: стиль исключённого из кошелька чека */
+.receipt.excluded{opacity:.55}
+.receipt.excluded .receipt-reward{
+  text-decoration:line-through;color:#a89a92;
+}
+
+/* ══════════════════════════════════════════════
+   ИГРОВОЙ ЭКРАН (без изменений)
+   ══════════════════════════════════════════════ */
+.game-top{display:flex;align-items:center;gap:10px;margin:0 0 15px}
+.back-btn{width:40px;height:40px;flex-shrink:0;border-radius:14px;
+  background:#ffffff0c;font-size:25px}
+.game-heading{flex:1;min-width:0}
+.game-heading strong{font-size:14px}
+.game-heading p{font-size:11px;color:#aaa;margin-top:3px}
+.balance{display:flex;align-items:center;gap:7px;padding:9px 12px;
+  border-radius:30px;background:#ffffff12;font-size:13px;font-weight:750;
+  white-space:nowrap}
+.coin{color:#ffc46d}
+.game-board{min-height:365px;position:relative;overflow:hidden;padding:14px;
+  border-radius:20px;background:var(--game-board)}
+.game-hud{display:flex;justify-content:space-between;gap:8px;font-size:10px;
+  color:#f0d4bd;margin-bottom:14px}
+.game-hud strong{font-size:14px;color:#fff;margin-left:4px}
+.game-start{position:absolute;z-index:4;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:22px;
+  background:#211b1bf2;border-radius:20px}
+.start-icon{font-size:49px;margin-bottom:12px}
+.game-start h2{margin-bottom:8px}
+.game-start p{max-width:260px;color:#bcb0a8;font-size:12px;margin-bottom:14px}
+.game-controls{display:flex;gap:8px;margin-top:12px}
+.game-controls button{flex:1}
+.game-screen{display:none}
+.game-screen.active{display:block}
+.coin-arena{height:275px;position:relative;overflow:hidden;border-radius:13px}
+.target-coin{position:absolute;width:58px;height:58px;border-radius:50%;
+  display:grid;place-items:center;font-size:29px;
+  background:radial-gradient(circle at 35% 25%,#fff0a8,#ffb33f 50%,#d65b26);
+  color:#773b1c;animation:coinFloat 1.5s ease-in-out infinite alternate}
+@keyframes coinFloat{from{transform:translateY(0) rotate(-8deg)}to{transform:translateY(-6px) rotate(8deg)}}
+.memory-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.memory-card{aspect-ratio:1;border-radius:12px;background:#ffffff0b;
+  display:grid;place-items:center;font-size:24px}
+.memory-card.open{background:#ffffff1b}
+.memory-card.matched{background:#92d58c35;opacity:.75}
+.reaction-area{height:270px;display:grid;place-items:center}
+.reaction-target{width:110px;height:110px;border-radius:50%;
+  background:radial-gradient(circle at 35% 25%,#ffd78e,#ff8246 55%,#bd3e30);
+  font-size:39px;transition:transform .1s}
+.target-field{height:270px;position:relative;overflow:hidden}
+.target-button{position:absolute;width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(140deg,#c9f29c,#5dbd78);
+  color:#173b25;font-size:24px}
+.math-card{text-align:center;padding:25px 5px}
+.math-question{font-size:32px;font-weight:850;margin:15px 0 25px}
+.math-options{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.math-option{padding:15px;background:#ffffff12;border-radius:12px;
+  font-weight:750;font-size:17px}
+.math-option:active{background:#ffffff28}
+.tap-area{height:270px;display:grid;place-items:center}
+.tap-button{width:160px;height:160px;border-radius:50%;
+  background:linear-gradient(145deg,#ffc36b,#f34c43);
+  color:#54241b;font-size:21px;font-weight:850;transition:transform .1s}
+.result-card{padding:24px 14px;text-align:center;border-radius:19px;
+  background:#ffffff08;margin-bottom:13px}
+.result-icon{font-size:45px}
+.result-coins{font-size:34px;font-weight:850;color:#ffca78;margin:10px 0}
+.result-card p{font-size:12px;color:#aaa;margin-top:6px}
+.notice{display:flex;gap:11px;align-items:flex-start;padding:14px;
+  border-radius:15px;background:#a6d98d13;margin:13px 0 17px}
+.notice-icon{font-size:20px}
+.notice strong{font-size:13px}
+.notice p{font-size:12px;color:#c4c4b8;margin-top:5px}
+
+/* Тост */
+.toast{position:fixed;z-index:100;bottom:calc(90px + env(safe-area-inset-bottom));
+  left:50%;transform:translate(-50%,10px);width:max-content;
+  max-width:calc(100% - 30px);padding:12px 16px;border-radius:14px;
+  background:#f4f2f0;color:#28211e;font-size:12px;font-weight:700;
+  opacity:0;pointer-events:none;transition:.2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+footer{text-align:center;font-size:10px;color:#9b8d84;padding:18px 0}
+
+/* ══════════════════════════════════════════════
+   НОВОЕ v3.0.0: МОДАЛЬНЫЕ ОКНА
+   (замена alert/confirm)
+   ══════════════════════════════════════════════ */
+.modal{position:fixed;inset:0;z-index:200;display:none;
+  align-items:center;justify-content:center}
+.modal.show{display:flex;animation:modalFade .16s ease}
+@keyframes modalFade{from{opacity:0}to{opacity:1}}
+.modal-backdrop{position:absolute;inset:0;background:#000000a0;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.modal-card{position:relative;z-index:2;width:calc(100% - 40px);max-width:360px;
+  padding:22px 20px 18px;border-radius:20px;background:#2f2927;
+  border:1px solid #ffffff14;box-shadow:0 20px 50px #0008;
+  animation:modalSlide .22s ease}
+@keyframes modalSlide{from{opacity:.6;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.modal-icon{font-size:32px;text-align:center;margin-bottom:10px;line-height:1}
+.modal-card h2{text-align:center;font-size:17px;margin-bottom:10px}
+.modal-body{text-align:center;color:#c9bfb9;font-size:13px;line-height:1.55;
+  margin-bottom:18px;white-space:pre-line;max-height:55vh;overflow-y:auto}
+.modal-actions{display:flex;gap:8px}
+.modal-actions button{flex:1}
+body.modal-open{overflow:hidden}
+
+/* НОВОЕ v3.0.0: textarea внутри модалки (комментарий к чеку) */
+.modal-textarea{
+  width:100%;min-height:100px;padding:10px 12px;
+  border-radius:12px;border:1px solid #ffffff20;
+  background:#ffffff0a;color:#f5f5f5;font:inherit;font-size:13px;
+  resize:vertical;outline:none;
+}
+.modal-textarea:focus{border-color:var(--telegram)}
+
+/* НОВОЕ v3.0.0: палитра закладок */
+.color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;padding:4px 0}
+.color-swatch{
+  aspect-ratio:1;border-radius:10px;border:2px solid #ffffff15;
+  transition:transform .15s,border-color .15s;cursor:pointer;
+}
+.color-swatch:active{transform:scale(.92)}
+.color-swatch:hover{border-color:#ffffff50}
+
+/* ══════════════════════════════════════════════
+   НОВОЕ v3.0.0: КОНТЕКСТНОЕ МЕНЮ (ПКМ)
+   ══════════════════════════════════════════════ */
+.ctx-menu{
+  position:fixed;z-index:300;min-width:220px;padding:6px;
+  border-radius:14px;background:#2f2927;
+  border:1px solid #ffffff18;box-shadow:0 10px 30px #000a;
+  display:none;
+}
+.ctx-menu.show{display:block;animation:pageIn .12s ease}
+.ctx-item{
+  display:flex;align-items:center;gap:9px;width:100%;
+  padding:10px 12px;border-radius:9px;background:none;
+  text-align:left;font-size:13px;color:#e8dfda;
+}
+.ctx-item:hover,.ctx-item:active{background:#ffffff12}
+.ctx-item .icon{font-size:16px;width:20px;text-align:center}
+
+@media(min-width:520px){
+  main{padding-left:20px;padding-right:20px}
+  .game-art{height:135px}
+  .game-board{padding:19px}
+}
+@media(hover:none){
+  .game-card:hover .game-art:before{transform:translateX(-80%) rotate(12deg)}
+  .game-card:hover .game-emoji{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+
+<body>
+<div class="background"></div>
+<div class="app">
+<main>
+
+<!-- ══════════════════════════════════════════════
+     ГЛАВНЫЙ ЭКРАН
+     НОВОЕ v3.0.0: шапка .identity удалена,
+     сайт начинается сразу с hero-блока.
+     ══════════════════════════════════════════════ -->
+<section class="page active" id="page-home">
+  <div class="hero">
+    <div class="eyebrow">GAME NETWORK / 002</div>
+    <h1>Играй.<br>Собирай монеты.</h1>
+    <p>Каждая завершённая игровая сессия приносит награду и новый чек.</p>
+    <button class="primary" onclick="navigate('games')">🎮 Открыть игры →</button>
+  </div>
+
+  <div class="section-head"><h2>Твой прогресс</h2><span class="muted small">LOCAL WALLET</span></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-value" id="statCoins">0</div><div class="stat-label">🪙 Монет всего</div></div>
+    <div class="stat"><div class="stat-value" id="statGames">0</div><div class="stat-label">🧾 Чеков</div></div>
+    <div class="stat"><div class="stat-value" id="statStars">0</div><div class="stat-label">⭐ Звёзд</div></div>
+  </div>
+
+  <div class="section-head"><h2>Мини-игры</h2><button class="text-button" onclick="navigate('games')">Все игры →</button></div>
+  <div class="game-list" id="homeGames"></div>
+
+  <div class="section-head"><h2>Последний чек</h2><button class="text-button" onclick="navigate('receipts')">История →</button></div>
+  <div id="latestReceipt"></div>
+
+  <div class="feature-row">
+    <div class="feature-icon">⛓️</div>
+    <div><strong>История игровых операций</strong><p>Каждое завершение игры записывается отдельно.</p></div>
+  </div>
+</section>
+
+<section class="page" id="page-games">
+  <div class="eyebrow">ARCADE / 6 GAMES</div>
+  <h1 style="margin-top:8px">Игровая зона</h1>
+  <p class="muted small" style="margin-top:9px">Повторяй раунды, собирай награды и открывай историю операций.</p>
+  <div class="game-list" id="allGames" style="margin-top:18px"></div>
+  <div class="notice">
+    <div class="notice-icon">🪙</div>
+    <div><strong>Единый баланс</strong><p>Все награды зачисляются в общую игровую валюту.</p></div>
+  </div>
+</section>
+
+<section class="page" id="page-profile">
+  <div class="eyebrow">ACCOUNT / PLAYER</div>
+  <h1 style="margin-top:8px">Мой профиль</h1>
+  <div class="profile-head">
+    <div class="avatar">P</div>
+    <div><div class="profile-name">Player</div><div class="profile-id">ID: LOCAL-000001</div></div>
+  </div>
+
+  <div class="wallet-card">
+    <div class="wallet-label">ОБЩИЙ ИГРОВОЙ БАЛАНС</div>
+    <div class="wallet-amount"><span id="profileBalance">0</span> <span style="font-size:18px">●</span></div>
+    <div class="wallet-bottom"><span>Валюта TON PLAY</span><span>LOCAL WALLET</span></div>
+  </div>
+
+  <div class="menu-list">
+    <button class="menu-row" onclick="navigate('receipts')">
+      <span class="menu-icon">🧾</span>
+      <div class="menu-description"><strong>Игровые чеки</strong><p>История завершённых сессий</p></div>
+      <span id="receiptCount" class="muted small">0</span><span class="arrow">›</span>
+    </button>
+    <button class="menu-row" onclick="navigate('games')">
+      <span class="menu-icon">🎮</span>
+      <div class="menu-description"><strong>Игры</strong><p>Повторный запуск и новые награды</p></div>
+      <span class="arrow">›</span>
+    </button>
+    <button class="menu-row" onclick="showAbout()">
+      <span class="menu-icon">⛓️</span>
+      <div class="menu-description"><strong>Архитектура</strong><p>Баланс, игровые записи и хеши</p></div>
+      <span class="arrow">›</span>
+    </button>
+  </div>
+
+  <div class="section-head"><h2>Достижения</h2></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-value" id="profileGames">0</div><div class="stat-label">🎯 Сессий</div></div>
+    <div class="stat"><div class="stat-value" id="profileStars">0</div><div class="stat-label">⭐ Звёзд</div></div>
+    <div class="stat"><div class="stat-value" id="profileBest">0</div><div class="stat-label">🏆 Рекорд</div></div>
+  </div>
+
+  <button class="quiet full" style="margin-top:18px" onclick="resetData()">Удалить локальные данные</button>
+  <footer>TON PLAY · STANDARD v3.0.0-STD</footer>
+</section>
+
+<section class="page" id="page-receipts">
+  <div class="eyebrow">ACCOUNT / TRANSACTIONS</div>
+  <h1 style="margin-top:8px">Игровые чеки</h1>
+  <p class="muted small" style="margin-top:9px">
+    Каждый чек соответствует одной завершённой сессии. ПКМ по чеку — закладка и цвет.
+  </p>
+
+  <div class="stats" style="margin:18px 0">
+    <div class="stat"><div class="stat-value" id="receiptTotal">0</div><div class="stat-label">🧾 Чеков</div></div>
+    <div class="stat"><div class="stat-value" id="receiptCoins">0</div><div class="stat-label">🪙 Начислено</div></div>
+    <div class="stat"><div class="stat-value" id="receiptStars">0</div><div class="stat-label">⭐ Звёзд</div></div>
+  </div>
+
+  <div class="section-head"><h2>История операций</h2></div>
+  <div class="receipt-list" id="receiptList"></div>
+</section>
+
+<section class="page" id="page-game">
+  <div class="game-top">
+    <button class="back-btn" onclick="leaveGame()" aria-label="Назад">‹</button>
+    <div class="game-heading"><strong id="gameTitle">Игра</strong><p id="gameSubtitle">Игровая сессия</p></div>
+    <div class="balance"><span class="coin">●</span><span id="gameBalance">0</span></div>
+  </div>
+
+  <div class="game-screen active" id="screen-playing">
+    <div class="game-board" id="gameBoard">
+      <div class="game-hud">
+        <span>ОЧКИ <strong id="gameScore">0</strong></span>
+        <span>ВРЕМЯ <strong id="gameTime">—</strong></span>
+      </div>
+      <div class="game-arena" id="gameArena"></div>
+      <div class="game-start" id="startOverlay">
+        <div class="start-icon" id="startIcon">🪙</div>
+        <h2 id="startTitle">Игра</h2>
+        <p id="startDescription">Готов к игре?</p>
+        <button class="primary" onclick="startGame()">▶ Начать игру</button>
+      </div>
+    </div>
+    <div class="game-controls">
+      <button class="quiet" onclick="leaveGame()">Выйти</button>
+      <button class="secondary" onclick="restartGame()">↻ Повторить</button>
+    </div>
+  </div>
+
+  <div class="game-screen" id="screen-result">
+    <div class="result-card">
+      <div class="result-icon" id="resultIcon">🏆</div>
+      <div class="eyebrow" style="margin-top:12px">SESSION COMPLETE</div>
+      <h2 style="margin-top:9px">Раунд завершён</h2>
+      <div class="result-coins" id="resultCoins">+0 ●</div>
+      <p id="resultStats">0 очков · 0 звёзд</p>
+      <p id="resultDuration">Время игры: 0 сек.</p>
+    </div>
+
+    <div class="notice">
+      <div class="notice-icon">✅</div>
+      <div><strong id="resultNoticeTitle">Награда зачислена</strong><p id="resultNotice">Результат сохранён.</p></div>
+    </div>
+
+    <div class="game-controls">
+      <button class="quiet" onclick="openLatestReceipt()">🧾 Открыть чек</button>
+      <button class="primary" onclick="restartGame()">↻ Играть снова</button>
+    </div>
+    <button class="quiet full" style="margin-top:9px" onclick="navigate('games')">Вернуться в каталог</button>
+  </div>
+</section>
+</main>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <button class="nav-item active" data-nav="home" onclick="navigate('home')"><span class="nav-icon">⌂</span><span>Главная</span></button>
+    <button class="nav-item" data-nav="games" onclick="navigate('games')"><span class="nav-icon">🎮</span><span>Игры</span></button>
+    <button class="nav-item" data-nav="receipts" onclick="navigate('receipts')"><span class="nav-icon">🧾</span><span>Чеки</span></button>
+    <button class="nav-item" data-nav="profile" onclick="navigate('profile')"><span class="nav-icon">👤</span><span>Профиль</span></button>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- НОВОЕ v3.0.0: модальное окно (замена alert/confirm) -->
+<div class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-card">
+    <div class="modal-icon" id="modalIcon">ⓘ</div>
+    <h2 id="modalTitle"></h2>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="quiet" id="modalCancel">Отмена</button>
+      <button class="primary" id="modalOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- НОВОЕ v3.0.0: контекстное меню (ПКМ / долгое нажатие) -->
+<div class="ctx-menu" id="ctxMenu" role="menu">
+  <button class="ctx-item" id="ctxBookmark" role="menuitem">
+    <span class="icon">🔖</span><span id="ctxBookmarkLabel">Пометить закладкой</span>
+  </button>
+  <button class="ctx-item" id="ctxColor" role="menuitem">
+    <span class="icon">🎨</span><span>Цвет / градиент закладки</span>
+  </button>
+</div>
+</div>
+
+<script>
+"use strict";
+
+/* ═══════════════════════════════════════════════════════════
+   TON PLAY · STANDARD v3.0.0
+   Базовый шаблон для будущих проектов.
+   ═══════════════════════════════════════════════════════════ */
+const APP_VERSION = "3.0.0-STD";
+
+/* ====== GAMES ====== */
+const GAMES={
+  coin:{id:"coin",name:"Ловец монет",icon:"🪙",
+    description:"Нажимай на монеты и собирай очки за 15 секунд.",
+    subtitle:"Собери как можно больше монет",
+    color:"#f0a24c",glow:"#f0a24c45",
+    gradient:"linear-gradient(140deg,#a65c2d,#e8a347)",
+    board:"#392820",mode:"coin",duration:15,reward:2},
+  memory:{id:"memory",name:"Память",icon:"🧩",
+    description:"Открывай карточки и находи одинаковые пары.",
+    subtitle:"Найди все четыре пары",
+    color:"#d875a4",glow:"#d875a445",
+    gradient:"linear-gradient(140deg,#72364f,#c86b87)",
+    board:"#30212b",mode:"memory",duration:0,reward:3},
+  reaction:{id:"reaction",name:"Реакция",icon:"⚡",
+    description:"Нажми на цель восемь раз.",
+    subtitle:"Восемь точных нажатий",
+    color:"#ef8050",glow:"#ef805045",
+    gradient:"linear-gradient(140deg,#70422f,#df8050)",
+    board:"#38271f",mode:"reaction",duration:0,reward:2},
+  target:{id:"target",name:"Попади в цель",icon:"🎯",
+    description:"Нажимай на движущуюся цель за 15 секунд.",
+    subtitle:"Попадай точно в цель",
+    color:"#8edc94",glow:"#8edc9445",
+    gradient:"linear-gradient(140deg,#285e48,#82bd75)",
+    board:"#20372c",mode:"target",duration:15,reward:3},
+  math:{id:"math",name:"Быстрый счёт",icon:"🔢",
+    description:"Решай примеры и выбирай правильный ответ.",
+    subtitle:"Проверь скорость вычислений",
+    color:"#7dc8f2",glow:"#7dc8f245",
+    gradient:"linear-gradient(140deg,#24537b,#65b7dc)",
+    board:"#202d3a",mode:"math",duration:20,reward:4},
+  tap:{id:"tap",name:"Тап-марафон",icon:"👆",
+    description:"Нажимай большую кнопку и набирай очки за 10 секунд.",
+    subtitle:"Скорость твоих нажатий",
+    color:"#c29aff",glow:"#c29aff45",
+    gradient:"linear-gradient(140deg,#543a85,#a58ae9)",
+    board:"#302640",mode:"tap",duration:10,reward:2}
+};
+
+/* НОВОЕ v3.0.0: палитра цветов и градиентов для закладки-стикера */
+const BOOKMARK_STYLES=[
+  {name:"Закат",   value:"linear-gradient(180deg,#ffbd65,#ed6046)"},
+  {name:"Роза",    value:"linear-gradient(180deg,#ff9a9e,#ec407a)"},
+  {name:"Лаванда", value:"linear-gradient(180deg,#b39ddb,#7e57c2)"},
+  {name:"Океан",   value:"linear-gradient(180deg,#81d4fa,#0288d1)"},
+  {name:"Мята",    value:"linear-gradient(180deg,#80cbc4,#00897b)"},
+  {name:"Лайм",    value:"linear-gradient(180deg,#c5e1a5,#689f38)"},
+  {name:"Солнце",  value:"linear-gradient(180deg,#fff59d,#f9a825)"},
+  {name:"Коралл",  value:"linear-gradient(180deg,#ffab91,#e64a19)"},
+  {name:"Графит",  value:"linear-gradient(180deg,#b0bec5,#455a64)"},
+  {name:"Золото",  value:"linear-gradient(180deg,#ffe082,#ff8f00)"}
+];
+
+/* ====== STORAGE ====== */
+const STORAGE_KEY="tonplay_demo_v3";
+
+/* НОВОЕ v3.0.0: нормализация старых чеков (из v2.x) —
+   добавляем новые поля с безопасными значениями по умолчанию. */
+function normalizeReceipt(r){
+  return Object.assign({},r,{
+    excluded:!!r.excluded,
+    rating:Math.max(0,Math.min(5,Number(r.rating)||0)),
+    comment:typeof r.comment==="string"?r.comment:"",
+    bookmarked:!!r.bookmarked,
+    bookmarkStyle:typeof r.bookmarkStyle==="string"?r.bookmarkStyle:"",
+    gameId:typeof r.gameId==="string"?r.gameId:""
+  });
+}
+
+function loadData(){
+  try{
+    const d=JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(d&&Number.isFinite(d.balance)&&Array.isArray(d.receipts)){
+      return{
+        balance:Math.max(0,d.balance),
+        receipts:d.receipts.map(normalizeReceipt),
+        playerId:typeof d.playerId==="string"?d.playerId:"LOCAL-000001"
+      };
+    }
+  }catch(e){}
+  return{balance:0,receipts:[],playerId:"LOCAL-000001"};
+}
+
+/* ====== STATE ====== */
+let data=loadData();
+let currentGame=null;
+let run=null;
+let timerId=null;
+let toastId=null;
+let receiptExpanded=null;
+let lastReceiptId=null;
+let actionTimers=[];
+/* НОВОЕ v3.0.0: состояние контекстного меню и палитры */
+let ctxReceiptId=null;
+let colorPickerReceiptId=null;
+let longPressTimer=null;
+let longPressStart=null;
+
+/* ====== HELPERS ====== */
+function clearActionTimers(){
+  actionTimers.forEach(id=>clearTimeout(id));
+  actionTimers=[];
+}
+function later(fn,ms){
+  const id=setTimeout(fn,ms);
+  actionTimers.push(id);
+  return id;
+}
+function stopTimer(){
+  if(timerId){clearInterval(timerId);timerId=null;}
+}
+function saveData(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}
+  catch(e){toast("Не удалось сохранить данные браузера.");}
+}
+function esc(v){
+  return String(v).replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+function fmtDate(v){
+  return new Date(v).toLocaleString("ru-RU",{
+    day:"2-digit",month:"2-digit",year:"numeric",
+    hour:"2-digit",minute:"2-digit"});
+}
+function demoHash(text){
+  let a=2166136261,b=2246822519;
+  for(let i=0;i<text.length;i++){
+    a=Math.imul(a^text.charCodeAt(i),16777619);
+    b=Math.imul(b^text.charCodeAt(i),3266489917);
+  }
+  return "demo_"+(a>>>0).toString(16).padStart(8,"0")+
+    (b>>>0).toString(16).padStart(8,"0")+
+    (a>>>0).toString(16).padStart(8,"0")+
+    (b>>>0).toString(16).padStart(8,"0");
+}
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg;
+  el.classList.add("show");
+  clearTimeout(toastId);
+  toastId=setTimeout(()=>el.classList.remove("show"),2400);
+}
+
+/* НОВОЕ v3.0.0: эффективный баланс кошелька —
+   из общей суммы вычитаются чеки с флагом excluded. */
+function effectiveBalance(){
+  const excluded=data.receipts
+    .filter(r=>r.excluded)
+    .reduce((s,r)=>s+(Number(r.coins)||0),0);
+  return Math.max(0,data.balance-excluded);
+}
+
+/* ====== MODAL ====== */
+let modalOnOk=null;
+
+function openModal(opts){
+  const o=opts||{};
+  document.getElementById("modalIcon").textContent=o.icon||"ⓘ";
+  document.getElementById("modalTitle").textContent=o.title||"";
+  const bodyEl=document.getElementById("modalBody");
+  /* НОВОЕ v3.0.0: поддержка HTML внутри модалки (палитра, textarea) */
+  if(o.html)bodyEl.innerHTML=o.html;
+  else bodyEl.textContent=o.body||"";
+  const ok=document.getElementById("modalOk");
+  const cancel=document.getElementById("modalCancel");
+  ok.textContent=o.okText||"OK";
+  cancel.textContent=o.cancelText||"Отмена";
+  cancel.style.display=o.showCancel===false?"none":"";
+  modalOnOk=typeof o.onOk==="function"?o.onOk:null;
+  document.getElementById("modal").classList.add("show");
+  document.getElementById("modal").setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
+}
+function closeModal(){
+  const modal=document.getElementById("modal");
+  if(!modal)return;
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden","true");
+  document.body.classList.remove("modal-open");
+  modalOnOk=null;
+  colorPickerReceiptId=null;
+}
+document.getElementById("modalOk").addEventListener("click",()=>{
+  const cb=modalOnOk;
+  /* НОВОЕ: колбэк вызывается ДО закрытия — textarea ещё доступна */
+  if(cb){try{cb();}catch(e){console.error(e);}}
+  closeModal();
+});
+document.getElementById("modalCancel").addEventListener("click",closeModal);
+document.getElementById("modalBackdrop").addEventListener("click",closeModal);
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){closeModal();closeContextMenu();}
+});
+
+/* НОВОЕ v3.0.0: клик по цветному образцу в палитре */
+document.getElementById("modalBody").addEventListener("click",e=>{
+  const sw=e.target.closest(".color-swatch");
+  if(!sw)return;
+  const idx=Number(sw.dataset.idx);
+  if(colorPickerReceiptId&&BOOKMARK_STYLES[idx]){
+    setBookmarkStyle(colorPickerReceiptId,BOOKMARK_STYLES[idx].value);
+    closeModal();
+  }
+});
+
+/* ====== NAVIGATION ====== */
+function navigate(page){
+  if(run&&run.running&&page!=="game"){
+    const target=page;
+    openModal({
+      icon:"⚠️",title:"Покинуть игру?",
+      body:"Текущий раунд будет прерван, награда не начисляется.",
+      okText:"Выйти",cancelText:"Остаться",
+      onOk(){
+        stopTimer();clearActionTimers();
+        run.running=false;run=null;
+        doNavigate(target);
+      }
+    });
+    return;
+  }
+  doNavigate(page);
+}
+function doNavigate(page){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  const t=document.getElementById("page-"+page);
+  if(t)t.classList.add("active");
+  document.querySelectorAll("[data-nav]").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.nav===page);
+  });
+  if(["home","games","profile","receipts"].indexOf(page)!==-1)renderAll();
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   НОВОЕ v3.0.0: ДЕЙСТВИЯ НАД ЧЕКОМ
+   ═══════════════════════════════════════════════════════════ */
+
+function findReceipt(id){
+  return data.receipts.find(r=>r.id===id);
+}
+
+/* Исключить/вернуть чек в сумму кошелька */
+function toggleExclude(id){
+  const r=findReceipt(id);
+  if(!r)return;
+  r.excluded=!r.excluded;
+  saveData();renderAll();
+  toast(r.excluded?"Чек исключён из суммы кошелька":"Чек снова учитывается");
+}
+
+/* Закладка (переключатель) */
+function toggleBookmark(id){
+  const r=findReceipt(id);
+  if(!r)return;
+  r.bookmarked=!r.bookmarked;
+  if(r.bookmarked&&!r.bookmarkStyle)r.bookmarkStyle=BOOKMARK_STYLES[0].value;
+  saveData();renderAll();
+  toast(r.bookmarked?"Закладка добавлена":"Закладка снята");
+}
+
+/* Установить цвет/градиент закладки */
+function setBookmarkStyle(id,style){
+  const r=findReceipt(id);
+  if(!r||!style)return;
+  r.bookmarkStyle=style;
+  r.bookmarked=true;
+  saveData();renderAll();
+  toast("Цвет закладки обновлён");
+}
+
+/* Комментарий к чеку */
+function setReceiptComment(id,comment){
+  const r=findReceipt(id);
+  if(!r)return;
+  r.comment=comment;
+  saveData();renderAll();
+  toast(comment?"Комментарий сохранён":"Комментарий удалён");
+}
+
+/* НОВОЕ v3.0.0: «В игру» из чека */
+function playAgainReceipt(id){
+  const r=findReceipt(id);
+  if(!r)return;
+  let gameId=r.gameId;
+  if(!gameId){
+    /* совместимость со старыми чеками — ищем по имени */
+    for(const gid in GAMES){
+      if(GAMES[gid].name===r.game){gameId=gid;break;}
+    }
+  }
+  if(!gameId||!GAMES[gameId]){toast("Игра не найдена в каталоге");return;}
+  openGame(gameId);
+}
+
+/* НОВОЕ v3.0.0: «Поделиться чеком» */
+function shareReceipt(id){
+  const r=findReceipt(id);
+  if(!r)return;
+  const text="TON PLAY · Чек #"+r.number+"\n"
+    +r.icon+" "+r.game+"\n"
+    +"+"+r.coins+" монет · "+r.score+" очков · "+r.stars+"★\n"
+    +fmtDate(r.date)+"\nID: "+r.id;
+  if(navigator.share){
+    navigator.share({title:"TON PLAY · Чек",text:text}).catch(()=>{});
+  }else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(
+      ()=>toast("Чек скопирован в буфер обмена"),
+      ()=>toast("Не удалось скопировать")
+    );
+  }else{
+    toast("Поделиться не поддерживается");
+  }
+}
+
+/* НОВОЕ v3.0.0: модалка комментария */
+function openCommentModal(id){
+  const r=findReceipt(id);
+  const current=r?(r.comment||""):"";
+  openModal({
+    icon:"💬",
+    title:"Комментарий к чеку",
+    html:'<textarea id="commentInput" class="modal-textarea" placeholder="Введите комментарий...">'
+      +esc(current)+'</textarea>',
+    okText:"Сохранить",cancelText:"Отмена",
+    onOk(){
+      const inp=document.getElementById("commentInput");
+      const val=inp?inp.value:"";
+      setReceiptComment(id,val.trim());
+    }
+  });
+  setTimeout(()=>{
+    const inp=document.getElementById("commentInput");
+    if(inp){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
+  },50);
+}
+
+/* НОВОЕ v3.0.0: палитра закладки */
+function openColorPicker(id){
+  const r=findReceipt(id);
+  const current=r?(r.bookmarkStyle||""):"";
+  colorPickerReceiptId=id;
+  const swatches=BOOKMARK_STYLES.map((s,i)=>
+    '<button class="color-swatch" data-idx="'+i+'" title="'+esc(s.name)
+    +'" style="background:'+esc(s.value)
+    +(current===s.value?';box-shadow:0 0 0 2px #fff inset':'')
+    +'"></button>'
+  ).join("");
+  openModal({
+    icon:"🎨",title:"Цвет закладки",
+    html:'<div class="color-grid">'+swatches+'</div>',
+    okText:"Готово",showCancel:false,
+    onOk(){}
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   НОВОЕ v3.0.0: КОНТЕКСТНОЕ МЕНЮ (ПКМ + долгое нажатие)
+   ═══════════════════════════════════════════════════════════ */
+
+function handleReceiptContext(e,id){
+  e.preventDefault();
+  e.stopPropagation();
+  clearTimeout(longPressTimer);
+  longPressStart=null;
+  openContextMenuAt(e.clientX,e.clientY,id);
+}
+
+function openContextMenuAt(x,y,id){
+  ctxReceiptId=id;
+  const r=findReceipt(id);
+  document.getElementById("ctxBookmarkLabel").textContent=
+    r&&r.bookmarked?"Снять закладку":"Пометить закладкой";
+  const menu=document.getElementById("ctxMenu");
+  menu.classList.add("show");
+  const rect=menu.getBoundingClientRect();
+  const left=Math.max(8,Math.min(x,window.innerWidth-rect.width-8));
+  const top=Math.max(8,Math.min(y,window.innerHeight-rect.height-8));
+  menu.style.left=left+"px";
+  menu.style.top=top+"px";
+}
+
+function closeContextMenu(){
+  const menu=document.getElementById("ctxMenu");
+  if(menu)menu.classList.remove("show");
+  ctxReceiptId=null;
+}
+
+/* Клики по пунктам меню */
+document.getElementById("ctxBookmark").addEventListener("click",()=>{
+  if(!ctxReceiptId)return;
+  const id=ctxReceiptId;
+  closeContextMenu();
+  toggleBookmark(id);
+});
+document.getElementById("ctxColor").addEventListener("click",()=>{
+  if(!ctxReceiptId)return;
+  const id=ctxReceiptId;
+  closeContextMenu();
+  openColorPicker(id);
+});
+
+/* Клик вне меню: закрыть и не дать клику переключить чек.
+   Используем capture-фазу, чтобы остановить распространение до onlick чека. */
+document.addEventListener("click",e=>{
+  const menu=document.getElementById("ctxMenu");
+  if(!menu||!menu.classList.contains("show"))return;
+  if(e.target.closest("#ctxMenu"))return;
+  e.stopPropagation();
+  closeContextMenu();
+},true);
+
+/* Делегирование: долгое нажатие (touch) на карточке чека */
+document.getElementById("receiptList").addEventListener("pointerdown",e=>{
+  if(e.pointerType==="mouse")return;
+  const card=e.target.closest(".receipt");
+  if(!card)return;
+  if(e.target.closest(".star-rating, .receipt-action"))return;
+  longPressStart={x:e.clientX,y:e.clientY,id:card.dataset.receiptId};
+  longPressTimer=setTimeout(()=>{
+    if(longPressStart){
+      openContextMenuAt(longPressStart.x,longPressStart.y,longPressStart.id);
+      longPressStart=null;
+    }
+  },500);
+});
+document.getElementById("receiptList").addEventListener("pointermove",e=>{
+  if(!longPressStart)return;
+  if(Math.hypot(e.clientX-longPressStart.x,e.clientY-longPressStart.y)>10){
+    clearTimeout(longPressTimer);longPressStart=null;
+  }
+});
+["pointerup","pointercancel"].forEach(evt=>{
+  document.getElementById("receiptList").addEventListener(evt,()=>{
+    clearTimeout(longPressTimer);longPressStart=null;
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════
+   НОВОЕ v3.0.0: РЕЙТИНГ ЗВЁЗДАМИ (drag-выбор)
+   ═══════════════════════════════════════════════════════════ */
+
+function attachStarRatings(){
+  document.querySelectorAll(".star-rating").forEach(el=>{
+    const receiptId=el.dataset.receiptId;
+    const stars=el.querySelectorAll(".rate-star");
+    const r=findReceipt(receiptId);
+    let currentVal=r?Math.max(0,Math.min(5,Number(r.rating)||0)):0;
+    let dragging=false;
+
+    function setVisual(v){
+      stars.forEach((s,i)=>s.classList.toggle("active",i<v));
+    }
+    setVisual(currentVal);
+
+    function getVal(e){
+      const rect=el.getBoundingClientRect();
+      const x=Math.max(0,Math.min(rect.width-0.01,e.clientX-rect.left));
+      return Math.ceil((x/rect.width)*5);
+    }
+
+    el.addEventListener("pointerdown",e=>{
+      e.preventDefault();e.stopPropagation();
+      dragging=true;
+      currentVal=getVal(e);setVisual(currentVal);
+      try{el.setPointerCapture(e.pointerId);}catch(_){}
+    });
+    el.addEventListener("pointermove",e=>{
+      if(!dragging)return;
+      e.preventDefault();
+      currentVal=getVal(e);setVisual(currentVal);
+    });
+    function endDrag(e){
+      if(!dragging)return;
+      dragging=false;
+      const v=getVal(e);
+      currentVal=v;setVisual(v);
+      const rr=findReceipt(receiptId);
+      if(rr){rr.rating=v;saveData();}
+    }
+    el.addEventListener("pointerup",endDrag);
+    el.addEventListener("pointercancel",()=>{dragging=false;});
+    el.addEventListener("click",e=>e.stopPropagation());
+  });
+}
+
+/* ====== RENDER ====== */
+function gameCard(g){
+  return '<button class="game-card" onclick="openGame(\''+g.id+'\')">'
+    +'<div class="game-art" style="--game-gradient:'+g.gradient+'">'
+    +'<span class="game-emoji">'+g.icon+'</span></div>'
+    +'<div class="game-info">'
+    +'<span class="tag">🪙 +'+g.reward+' за очко</span>'
+    +'<h3>'+esc(g.name)+'</h3>'
+    +'<p>'+esc(g.description)+'</p>'
+    +'</div></button>';
+}
+function renderGames(){
+  const html=Object.keys(GAMES).map(k=>gameCard(GAMES[k])).join("");
+  document.getElementById("homeGames").innerHTML=html;
+  document.getElementById("allGames").innerHTML=html;
+}
+function renderStats(){
+  const stars=data.receipts.reduce((s,r)=>s+(Number(r.stars)||0),0);
+  const best=data.receipts.reduce((s,r)=>Math.max(s,Number(r.score)||0),0);
+  const earned=data.receipts.reduce((s,r)=>s+(Number(r.coins)||0),0);
+  /* НОВОЕ: баланс = эффективный (исключённые чеки не учитываются) */
+  const eff=effectiveBalance();
+  const values={
+    statCoins:eff,statGames:data.receipts.length,statStars:stars,
+    profileBalance:eff,profileGames:data.receipts.length,
+    profileStars:stars,profileBest:best,
+    receiptCount:data.receipts.length,receiptTotal:data.receipts.length,
+    receiptCoins:earned,receiptStars:stars,gameBalance:eff
+  };
+  Object.keys(values).forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=Number(values[id]).toLocaleString("ru-RU");
+  });
+}
+
+/* НОВОЕ v3.0.0: карточка чека с действиями, закладкой и рейтингом */
+function receiptCard(r){
+  const opened=receiptExpanded===r.id;
+  const rating=Math.max(0,Math.min(5,Number(r.rating)||0));
+  const starsHtml=[1,2,3,4,5].map(i=>
+    '<span class="rate-star'+(i<=rating?' active':'')+'" data-star="'+i+'">★</span>'
+  ).join("");
+
+  const bookmarkHtml=r.bookmarked
+    ?'<div class="receipt-bookmark" style="background:'
+      +esc(r.bookmarkStyle||BOOKMARK_STYLES[0].value)+'"></div>'
+    :"";
+
+  const actionsHtml=opened?(
+    '<div class="receipt-detail" onclick="event.stopPropagation()">'
+    +'<div class="detail-row"><span>ID сессии</span><span>'+esc(r.id)+'</span></div>'
+    +'<div class="detail-row"><span>Игра</span><span>'+esc(r.game)+'</span></div>'
+    +'<div class="detail-row"><span>Награда</span><span>+'+r.coins+' монет</span></div>'
+    +'<div class="detail-row"><span>Звёзды</span><span>'+r.stars+' / 3</span></div>'
+    +'<div class="detail-row"><span>Дополнительные данные</span><span>'+esc(r.extra)+'</span></div>'
+    +'<div class="detail-row"><span>Сеть</span><span>'+esc(r.network)+'</span></div>'
+    +'<div class="detail-row"><span>Номер блока (демо)</span><span>'+r.block+'</span></div>'
+    +'<div class="detail-row"><span>Статус</span><span>'+esc(r.status)+'</span></div>'
+    +'<div class="detail-row"><span>Хеш (демо)</span><span class="hash">'+esc(r.hash)+'</span></div>'
+    +'<div class="detail-row"><span>Баланс после игры</span><span>'+r.balanceAfter+' ●</span></div>'
+    +'<div class="disclaimer">Локальная запись браузера. Хеш и номер блока демонстрационные; транзакция в TON не выполнялась.</div>'
+
+    /* Отображение сохранённого комментария */
+    +(r.comment?'<div class="receipt-comment">💬 '+esc(r.comment)+'</div>':"")
+
+    /* Строка рейтинга */
+    +'<div class="receipt-rating-row">'
+    +'<span class="muted small">Оцените игру</span>'
+    +'<div class="star-rating" data-receipt-id="'+esc(r.id)+'">'+starsHtml+'</div>'
+    +'</div>'
+
+    /* Панель действий */
+    +'<div class="receipt-actions">'
+    +'<button class="receipt-action" onclick="event.stopPropagation(); playAgainReceipt(\''+esc(r.id)+'\')">'
+    +'<span class="icon">🎮</span>В игру</button>'
+
+    +'<button class="receipt-action'+(r.excluded?' active':'')+'" onclick="event.stopPropagation(); toggleExclude(\''+esc(r.id)+'\')">'
+    +'<span class="icon">'+(r.excluded?'✅':'🚫')+'</span>'
+    +(r.excluded?'Учитывать':'Не учитывать')+'</button>'
+
+    +'<button class="receipt-action'+(r.comment?' active':'')+'" onclick="event.stopPropagation(); openCommentModal(\''+esc(r.id)+'\')">'
+    +'<span class="icon">💬</span>Комментарий</button>'
+
+    +'<button class="receipt-action" onclick="event.stopPropagation(); shareReceipt(\''+esc(r.id)+'\')">'
+    +'<span class="icon">📤</span>Поделиться</button>'
+    +'</div>'
+    +'</div>'
+  ):"";
+
+  return '<div class="receipt'+(r.excluded?' excluded':'')+(r.bookmarked?' has-bookmark':'')+'"'
+    +' data-receipt-id="'+esc(r.id)+'"'
+    +' style="--receipt-color:'+esc(r.color)+';--receipt-glow:'+esc(r.glow)+'"'
+    +' onclick="toggleReceipt(\''+esc(r.id)+'\')"'
+    +' oncontextmenu="handleReceiptContext(event, \''+esc(r.id)+'\')">'
+    +bookmarkHtml
+    +'<div class="receipt-main"><div>'
+    +'<div class="receipt-title">'+esc(r.icon)+' '+esc(r.game)+'</div>'
+    +'<div class="receipt-date">'+fmtDate(r.date)+'</div></div>'
+    +'<div class="receipt-reward">+'+r.coins+' ●</div></div>'
+    +'<div class="receipt-foot">'
+    +'<span>ЧЕК #'+esc(r.number)+'</span>'
+    +'<span>🎯 '+r.score+' очков</span>'
+    +'<span>⭐ '+r.stars+'</span>'
+    +'<span>⏱ '+r.duration+' сек.</span>'
+    +'</div>'
+    +actionsHtml
+    +'</div>';
+}
+
+function toggleReceipt(id){
+  receiptExpanded=receiptExpanded===id?null:id;
+  renderReceipts();
+}
+function renderReceipts(){
+  const list=document.getElementById("receiptList");
+  if(!data.receipts.length){
+    list.innerHTML='<div class="empty">'
+      +'<div class="empty-icon">🧾</div><strong>Чеков пока нет</strong>'
+      +'<p class="small" style="margin:7px 0 14px">Заверши игру, чтобы получить первый чек.</p>'
+      +'<button class="primary" onclick="navigate(\'games\')">🎮 Выбрать игру</button>'
+      +'</div>';
+  }else{
+    list.innerHTML=data.receipts.slice().reverse().map(receiptCard).join("");
+  }
+  /* НОВОЕ: после рендера подключаем drag-рейтинг к звёздам */
+  attachStarRatings();
+
+  const latest=data.receipts[data.receipts.length-1];
+  document.getElementById("latestReceipt").innerHTML=latest
+    ?'<button class="receipt-preview full" style="--receipt-color:'+esc(latest.color)
+      +'" onclick="openLatestReceipt()"><div class="receipt-preview-main">'
+      +'<div class="receipt-preview-title">'+esc(latest.icon)+' '+esc(latest.game)+'</div>'
+      +'<div class="receipt-preview-sub">#'+esc(latest.number)+' · '+fmtDate(latest.date)+'</div>'
+      +'</div><div class="receipt-preview-reward">+'+latest.coins+' ●　›</div></button>'
+    :'<div class="empty"><div class="empty-icon">🧾</div><p>Здесь появится первый чек.</p></div>';
+}
+function renderAll(){
+  renderGames();
+  renderStats();
+  renderReceipts();
+}
+
+/* ====== GAME FLOW ====== */
+function openGame(id){
+  const g=GAMES[id];
+  if(!g)return;
+  stopTimer();
+  clearActionTimers();
+  run=null;
+  currentGame=g;
+
+  doNavigate("game");
+
+  document.getElementById("gameTitle").textContent=g.name;
+  document.getElementById("gameSubtitle").textContent=g.subtitle;
+  document.getElementById("gameBoard").style.setProperty("--game-board",g.board);
+  document.getElementById("screen-playing").classList.add("active");
+  document.getElementById("screen-result").classList.remove("active");
+  document.getElementById("startOverlay").style.display="flex";
+  document.getElementById("startIcon").textContent=g.icon;
+  document.getElementById("startTitle").textContent=g.name;
+  document.getElementById("startDescription").textContent=g.description;
+  document.getElementById("gameScore").textContent="0";
+  document.getElementById("gameTime").textContent=g.duration||"—";
+  document.getElementById("gameBalance").textContent=effectiveBalance();
+  prepareArena();
+}
+function prepareArena(){
+  const a=document.getElementById("gameArena");
+  switch(currentGame.mode){
+    case "coin":a.innerHTML='<div class="coin-arena" id="coinArena"></div>';break;
+    case "memory":a.innerHTML='<div class="memory-grid" id="memoryGrid"></div>';break;
+    case "reaction":a.innerHTML='<div class="reaction-area"><button class="reaction-target" id="reactionTarget" disabled>⚡</button></div>';break;
+    case "target":a.innerHTML='<div class="target-field" id="targetField"></div>';break;
+    case "math":a.innerHTML='<div class="math-card" id="mathCard"></div>';break;
+    case "tap":a.innerHTML='<div class="tap-area"><button class="tap-button" id="tapButton" disabled>НАЖМИ!</button></div>';break;
+  }
+}
+function startGame(){
+  if(!currentGame)return;
+  stopTimer();
+  clearActionTimers();
+  run={id:currentGame.id,running:true,finished:false,score:0,
+    started:Date.now(),remaining:currentGame.duration,
+    clicks:0,matched:0,first:null,locked:false,cards:[],
+    reactionTimes:[],lastTap:0,question:null};
+  document.getElementById("startOverlay").style.display="none";
+  document.getElementById("gameScore").textContent="0";
+  document.getElementById("gameTime").textContent=currentGame.duration||"—";
+
+  switch(currentGame.mode){
+    case "coin":spawnCoin();break;
+    case "memory":setupMemory();break;
+    case "reaction":setupReaction();break;
+    case "target":moveTarget();break;
+    case "math":nextMathQuestion();break;
+    case "tap":setupTap();break;
+  }
+
+  if(currentGame.duration>0){
+    timerId=setInterval(()=>{
+      if(!run||!run.running)return;
+      run.remaining--;
+      document.getElementById("gameTime").textContent=run.remaining;
+      if(run.remaining<=0)finishGame();
+    },1000);
+  }
+}
+function updateScore(){
+  if(run)document.getElementById("gameScore").textContent=run.score;
+}
+
+/* ====== COIN ====== */
+function spawnCoin(){
+  if(!run||!run.running)return;
+  const a=document.getElementById("coinArena");
+  if(!a)return;
+  a.innerHTML="";
+  const c=document.createElement("button");
+  c.className="target-coin";c.textContent="🪙";
+  c.setAttribute("aria-label","Собрать монету");
+  const mx=Math.max(0,a.clientWidth-60),my=Math.max(0,a.clientHeight-60);
+  c.style.left=Math.floor(Math.random()*Math.max(1,mx))+"px";
+  c.style.top=Math.floor(Math.random()*Math.max(1,my))+"px";
+  c.onclick=()=>{
+    if(!run||!run.running)return;
+    run.score++;run.clicks++;updateScore();spawnCoin();
+  };
+  a.appendChild(c);
+}
+
+/* ====== MEMORY ====== */
+function setupMemory(){
+  const p=["🍊","🍇","🍎","🍒"];
+  run.cards=p.concat(p).sort(()=>Math.random()-.5);
+  document.getElementById("memoryGrid").innerHTML=run.cards.map((e,i)=>
+    '<button class="memory-card" data-index="'+i+'" onclick="flipCard('+i+')" aria-label="Карточка '+(i+1)+'">?</button>'
+  ).join("");
+}
+function flipCard(index){
+  if(!run||!run.running||run.locked)return;
+  const btns=Array.from(document.querySelectorAll(".memory-card"));
+  const b=btns[index];
+  if(!b||b.classList.contains("matched")||b.classList.contains("open"))return;
+  b.textContent=run.cards[index];
+  b.classList.add("open");
+  run.clicks++;
+
+  if(run.first===null){run.first=index;return;}
+  const first=run.first;
+  run.first=null;
+
+  if(run.cards[first]===run.cards[index]){
+    btns[first].classList.add("matched");
+    b.classList.add("matched");
+    btns[first].classList.remove("open");
+    b.classList.remove("open");
+    run.matched++;run.score+=2;updateScore();
+    if(run.matched===4)finishGame();
+  }else{
+    run.locked=true;
+    later(()=>{
+      if(!run||!run.running)return;
+      btns[first].textContent="?";b.textContent="?";
+      btns[first].classList.remove("open");b.classList.remove("open");
+      run.locked=false;
+    },650);
+  }
+}
+
+/* ====== REACTION ====== */
+function setupReaction(){
+  const t=document.getElementById("reactionTarget");
+  t.disabled=false;
+  t.onclick=()=>{
+    if(!run||!run.running)return;
+    const now=Date.now();
+    if(run.lastTap)run.reactionTimes.push(now-run.lastTap);
+    run.lastTap=now;run.clicks++;run.score++;updateScore();
+    t.style.transform="scale("+(run.score%2?1.1:.92)+")";
+    later(()=>{if(t)t.style.transform="";},100);
+    if(run.score>=8)finishGame();
+  };
+}
+
+/* ====== TARGET ====== */
+function moveTarget(){
+  if(!run||!run.running)return;
+  const f=document.getElementById("targetField");
+  if(!f)return;
+  f.innerHTML="";
+  const t=document.createElement("button");
+  t.className="target-button";t.textContent="🎯";
+  t.setAttribute("aria-label","Попасть в цель");
+  const mx=Math.max(0,f.clientWidth-66),my=Math.max(0,f.clientHeight-66);
+  t.style.left=Math.floor(Math.random()*Math.max(1,mx))+"px";
+  t.style.top=Math.floor(Math.random()*Math.max(1,my))+"px";
+  t.onclick=()=>{
+    if(!run||!run.running)return;
+    run.score++;run.clicks++;updateScore();moveTarget();
+  };
+  f.appendChild(t);
+}
+
+/* ====== MATH ====== */
+function nextMathQuestion(){
+  if(!run||!run.running)return;
+  const a=Math.floor(Math.random()*12)+1;
+  const b=Math.floor(Math.random()*12)+1;
+  const op=Math.random()<.5?"+":"−";
+  const ans=op==="+"?a+b:a-b;
+  const opts={};opts[ans]=1;
+  while(Object.keys(opts).length<4){
+    const v=ans+Math.floor(Math.random()*11)-5;
+    opts[v]=1;
+  }
+  const keys=Object.keys(opts).map(Number).sort(()=>Math.random()-.5);
+  run.question=ans;
+  document.getElementById("mathCard").innerHTML=
+    '<div class="muted small">ВЫБЕРИ ПРАВИЛЬНЫЙ ОТВЕТ</div>'
+    +'<div class="math-question">'+a+' '+op+' '+b+' = ?</div>'
+    +'<div class="math-options">'
+    +keys.map(n=>'<button class="math-option" onclick="answerMath('+n+')">'+n+'</button>').join("")
+    +'</div>';
+}
+function answerMath(ans){
+  if(!run||!run.running)return;
+  run.clicks++;
+  if(ans===run.question){run.score+=2;toast("Правильно! +2 очка");}
+  updateScore();nextMathQuestion();
+}
+
+/* ====== TAP ====== */
+function setupTap(){
+  const b=document.getElementById("tapButton");
+  b.disabled=false;
+  b.onclick=()=>{
+    if(!run||!run.running)return;
+    run.score++;run.clicks++;updateScore();
+    b.style.transform="scale("+(run.score%2?.96:1.03)+")";
+  };
+}
+
+/* ====== FINISH ====== */
+function finishGame(){
+  if(!run||!run.running||run.finished)return;
+  run.running=false;run.finished=true;
+  stopTimer();clearActionTimers();
+
+  const game=currentGame;
+  const score=run.score;
+  const duration=Math.max(1,Math.round((Date.now()-run.started)/1000));
+  const coins=score*game.reward;
+  let extra="";
+
+  switch(game.mode){
+    case "coin":extra="Собрано монет: "+run.clicks;break;
+    case "memory":extra="Найдено пар: "+run.matched+"/4; нажатий: "+run.clicks;break;
+    case "reaction":{
+      const avg=run.reactionTimes.length
+        ?Math.round(run.reactionTimes.reduce((a,b)=>a+b,0)/run.reactionTimes.length):0;
+      extra="Попаданий: "+score+"/8; средний интервал: "+avg+" мс";break;
+    }
+    case "target":extra="Попаданий в цель: "+run.clicks;break;
+    case "math":extra="Решено примеров: "+run.clicks+"; очков: "+score;break;
+    case "tap":extra="Количество нажатий: "+run.clicks;break;
+  }
+
+  const stars=score>=12?3:score>=6?2:score>=2?1:0;
+  data.balance+=coins;
+
+  const date=Date.now();
+  const number=String(data.receipts.length+1).padStart(6,"0");
+  const sessionId="S-"+date.toString(36).toUpperCase()+"-"
+    +Math.random().toString(36).slice(2,8).toUpperCase();
+  const payload=[sessionId,game.id,score,coins,stars,date,data.balance].join("|");
+
+  const receipt={
+    id:sessionId,number:number,game:game.name,icon:game.icon,
+    /* НОВОЕ: сохраняем gameId для кнопки «В игру» */
+    gameId:game.id,
+    score:score,coins:coins,stars:stars,duration:duration,extra:extra,date:date,
+    color:game.color,glow:game.glow,
+    network:"TON · DEMO",
+    block:1000000+data.receipts.length,
+    status:"LOCAL · НЕ В СЕТИ",
+    hash:demoHash(payload),
+    balanceAfter:data.balance,
+    /* НОВОЕ v3.0.0: значения по умолчанию для новых полей */
+    excluded:false,rating:0,comment:"",bookmarked:false,bookmarkStyle:""
+  };
+
+  data.receipts.push(receipt);
+  lastReceiptId=receipt.id;
+  saveData();renderAll();
+
+  document.getElementById("screen-playing").classList.remove("active");
+  document.getElementById("screen-result").classList.add("active");
+  document.getElementById("resultIcon").textContent=stars===3?"🏆":stars>0?"⭐":game.icon;
+  document.getElementById("resultCoins").textContent="+"+coins+" ●";
+  document.getElementById("resultStats").textContent=score+" очков · "+stars+" звёзд";
+  document.getElementById("resultDuration").textContent="Время игры: "+duration+" сек.";
+  document.getElementById("resultNoticeTitle").textContent=
+    coins>0?"Награда зачислена":"Раунд завершён";
+  document.getElementById("resultNotice").textContent=
+    "Начислено "+coins+" монет. Чек #"+number+" сохранён в профиле. Можно играть снова.";
+  toast("Раунд завершён · +"+coins+" монет");
+}
+
+/* ====== ACTIONS ====== */
+function restartGame(){
+  if(!currentGame)return;
+  if(run&&run.running){
+    openModal({
+      icon:"🔄",title:"Начать заново?",
+      body:"Текущий раунд будет прерван, награда не начисляется.",
+      okText:"Заново",cancelText:"Отмена",
+      onOk:doRestartGame
+    });
+    return;
+  }
+  doRestartGame();
+}
+function doRestartGame(){
+  if(!currentGame)return;
+  const id=currentGame.id;
+  stopTimer();clearActionTimers();
+  if(run)run.running=false;
+  openGame(id);
+}
+function leaveGame(){
+  if(run&&run.running){
+    openModal({
+      icon:"⚠️",title:"Выйти из игры?",
+      body:"Текущий раунд будет прерван, награда не начисляется.",
+      okText:"Выйти",cancelText:"Продолжить",
+      onOk:doLeaveGame
+    });
+    return;
+  }
+  doLeaveGame();
+}
+function doLeaveGame(){
+  stopTimer();clearActionTimers();
+  if(run)run.running=false;
+  run=null;currentGame=null;
+  doNavigate("games");
+}
+function openLatestReceipt(){
+  const latest=data.receipts[data.receipts.length-1];
+  receiptExpanded=latest?latest.id:null;
+  if(latest)lastReceiptId=latest.id;
+  doNavigate("receipts");
+}
+function showAbout(){
+  openModal({
+    icon:"⛓️",title:"Архитектура TON PLAY",
+    body:"Версия: "+APP_VERSION+"\n\n"
+      +"Единый баланс всех игровых режимов.\n"
+      +"Отдельный чек после каждого завершения.\n"
+      +"Закладки и цвета для навигации по чекам.\n"
+      +"Исключённые чеки не входят в сумму кошелька.\n"
+      +"Хеш и номер блока — демонстрационные.\n"
+      +"Подключение к сети TON отсутствует.\n\n"
+      +"Для реальных блокчейн-транзакций нужны серверная проверка "
+      +"результатов, TON Connect и смарт-контракт.",
+    okText:"Понятно",showCancel:false
+  });
+}
+function resetData(){
+  openModal({
+    icon:"🗑️",title:"Удалить данные?",
+    body:"Баланс, все игровые чеки и статистика будут удалены без возможности восстановления.",
+    okText:"Удалить",cancelText:"Отмена",
+    onOk:doResetData
+  });
+}
+function doResetData(){
+  stopTimer();clearActionTimers();
+  run=null;currentGame=null;
+  data={balance:0,receipts:[],playerId:"LOCAL-000001"};
+  receiptExpanded=null;lastReceiptId=null;
+  saveData();renderAll();doNavigate("profile");
+  toast("Локальные данные сброшены");
+}
+
+/* ====== INIT ====== */
+renderAll();
+</script>
+</body>
+</html>
